@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_shopping_list_app/data/categories.dart';
 import 'package:flutter_shopping_list_app/models/category.dart';
+import 'package:flutter_shopping_list_app/models/grocery_item.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -27,7 +28,7 @@ class _NewItemState extends State<NewItem> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       final url = Uri.https(dotenv.get('FIREBASE_URL'), 'shopping-list.json');
-      await http.post(
+      final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
@@ -37,12 +38,21 @@ class _NewItemState extends State<NewItem> {
         }),
       );
 
+      final Map<String, dynamic> resData = json.decode(response.body);
+
       if (!context.mounted) {
         return;
       }
 
       // ignore: use_build_context_synchronously
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(
+        GroceryItem(
+          id: resData['name'],
+          name: _enteredName,
+          quantity: _enteredQuantity,
+          category: _selectedCategory,
+        ),
+      );
     }
   }
 
